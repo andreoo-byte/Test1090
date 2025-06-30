@@ -1299,10 +1299,6 @@
             // Update the display
             document.getElementById('current-ad-number').textContent = adNumber;
             
-            // Update button states
-            document.getElementById('prev-btn').disabled = adNumber <= 1;
-            document.getElementById('next-btn').disabled = adNumber >= TOTAL_ADS;
-            
             // Update progress bar
             const progressPercent = (adNumber / TOTAL_ADS) * 100;
             document.getElementById('progress-bar').style.width = `${progressPercent}%`;
