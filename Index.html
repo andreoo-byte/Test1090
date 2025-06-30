@@ -1321,10 +1321,12 @@
         
         // Navigation functions
         function nextAd() {
-            if (currentAd < TOTAL_ADS) {
-                currentAd++;
-                showAd(currentAd);
-            }
+    if (currentAd < TOTAL_ADS) {
+        currentAd++;
+    } else {
+        currentAd = 1; // Loop back to first ad
+    }
+    showAd(currentAd);
         }
         
         function prevAd() {
