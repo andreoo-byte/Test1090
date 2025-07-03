@@ -1343,7 +1343,79 @@
             }
         }
 
+        // Open All Ads function (Chrome-compatible)
+        function openAllAds() {
+            if (!confirm("This will try to open 61 tabs. Chrome may block some. Allow pop-ups for this site and try again if blocked.")) return;
 
+            // First test if pop-ups are allowed
+            const testTab = window.open('', '_blank');
+            if (!testTab) {
+                alert("Pop-ups are blocked. Please allow pop-ups for this site and try again.");
+                return;
+            }
+            testTab.close();
+
+            let openedCount = 0;
+            
+            // Function to open a specific ad
+            const openAd = (adNumber) => {
+                const adElement = document.getElementById(`ad${adNumber}`);
+                if (!adElement) return false;
+
+                // Find the first iframe within the ad
+                const adIframe = adElement.querySelector('iframe');
+                
+                if (adIframe && adIframe.contentDocument) {
+                    // Try to find clickable elements inside the iframe
+                    const clickable = adIframe.contentDocument.querySelector('a[href]');
+                    if (clickable) {
+                        const newTab = window.open(clickable.href, `ad${adNumber}`);
+                        if (newTab) {
+                            openedCount++;
+                            return true;
+                        }
+                    }
+                }
+                
+                // Fallback method: Try to extract URL from script
+                const adScript = adElement.querySelector('script[src*="invoke.js"]');
+                if (adScript) {
+                    try {
+                        const adKey = adScript.src.split('/').slice(-2, -1)[0];
+                        const inspectUrl = `https://decomposemanly.com/${adKey}/inspect`;
+                        const newTab = window.open(inspectUrl, `ad${adNumber}`);
+                        if (newTab) {
+                            openedCount++;
+                            return true;
+                        }
+                    } catch (e) {
+                        console.error(`Couldn't open ad ${adNumber}`, e);
+                    }
+                }
+                
+                return false;
+            };
+
+            // Open ads sequentially with delays
+            let currentAd = 1;
+            const openNextAd = () => {
+                if (currentAd > TOTAL_ADS) {
+                    setTimeout(() => {
+                        alert(`Attempted to open ${TOTAL_ADS} ads. Successfully opened ${openedCount} tabs.` + 
+                              (openedCount < TOTAL_ADS ? "\n\nSome tabs may have been blocked by Chrome's pop-up blocker." : ""));
+                    }, 500);
+                    return;
+                }
+                
+                const success = openAd(currentAd);
+                currentAd++;
+                
+                // Use a slightly longer delay if the ad didn't open
+                setTimeout(openNextAd, success ? 300 : 500);
+            };
+
+            openNextAd();
+        }
         
         // Event listeners
         document.getElementById('next-btn').addEventListener('click', nextAd);
