@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
     <title>Ad Banner Display</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: ;
+            margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
             max-width: 800px;
@@ -87,6 +88,11 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
+        #open-all-ads-btn {
+            background-color: #ff5722;
+            display: block;
+            margin: 20px auto;
+        }
         .footer {
             text-align: center;
             margin: 30px 0;
@@ -119,6 +125,8 @@
         <button id="prev-btn" disabled>Previous</button>
         <button id="next-btn">Next</button>
     </div>
+
+    <button id="open-all-ads-btn">Open All 61 Ads in New Tabs</button>
 
     <!-- Ad 1 -->
     <div class="ad-container" id="ad1">
@@ -1271,16 +1279,6 @@
         </div>
     </div>
 
-    <!-- Add this button -->
-<div style="text-align: center; margin: 20px 0;">
-    <button id="open-all-ads-btn" style="padding: 10px 20px; background-color: #ff5722; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        Open All 61 Ads in New Tabs
-    </button>
-</div>
-
-<div class="footer">
-    Ad Banner Display - Uses cookies to remember your position
-</div>
     <div class="footer">
         Ad Banner Display - Uses cookies to remember your position
     </div>
@@ -1308,6 +1306,10 @@
             // Update the display
             document.getElementById('current-ad-number').textContent = adNumber;
             
+            // Update button states
+            document.getElementById('prev-btn').disabled = adNumber <= 1;
+            document.getElementById('next-btn').disabled = adNumber >= TOTAL_ADS;
+            
             // Update progress bar
             const progressPercent = (adNumber / TOTAL_ADS) * 100;
             document.getElementById('progress-bar').style.width = `${progressPercent}%`;
@@ -1324,7 +1326,71 @@
             }
         }
         
+        // Navigation functions
+        function nextAd() {
+            if (currentAd < TOTAL_ADS) {
+                currentAd++;
+            } else {
+                currentAd = 1; // Loop back to first ad
+            }
+            showAd(currentAd);
+        }
         
+        function prevAd() {
+            if (currentAd > 1) {
+                currentAd--;
+                showAd(currentAd);
+            }
+        }
+
+        // Open All Ads function (Chrome-compatible)
+        function openAllAds() {
+            if (!confirm("This will try to open 61 tabs. Chrome may block some. Allow pop-ups for this site and try again if blocked.")) return;
+
+            // First open one tab to trigger Chrome's pop-up permission dialog
+            const testTab = window.open('', '_blank');
+            if (!testTab) {
+                alert("Pop-ups are blocked. Please allow pop-ups for this site and try again.");
+                return;
+            }
+            testTab.close();
+
+            let openedCount = 0;
+            const openNextAd = (i) => {
+                if (i > TOTAL_ADS) {
+                    setTimeout(() => {
+                        alert(`Attempted to open ${TOTAL_ADS} ads. Successfully opened ${openedCount} tabs.` + 
+                              (openedCount < TOTAL_ADS ? "\n\nSome tabs may have been blocked by Chrome's pop-up blocker." : ""));
+                    }, 500);
+                    return;
+                }
+                
+                const adElement = document.getElementById(`ad${i}`);
+                if (adElement) {
+                    const adIframe = adElement.querySelector('iframe');
+                    if (adIframe && adIframe.src) {
+                        const newTab = window.open(adIframe.src, `ad${i}`);
+                        if (newTab) openedCount++;
+                    } else {
+                        const adScript = adElement.querySelector('script[src*="invoke.js"]');
+                        if (adScript) {
+                            const adKey = adScript.src.split('/').slice(-2, -1)[0];
+                            const newTab = window.open(`https://decomposemanly.com/${adKey}/inspect`, `ad${i}`);
+                            if (newTab) openedCount++;
+                        }
+                    }
+                }
+                
+                setTimeout(() => openNextAd(i + 1), 300);
+            };
+
+            openNextAd(1);
+        }
+        
+        // Event listeners
+        document.getElementById('next-btn').addEventListener('click', nextAd);
+        document.getElementById('prev-btn').addEventListener('click', prevAd);
+        document.getElementById('open-all-ads-btn').addEventListener('click', openAllAds);
         
         // Initialize
         showAd(currentAd);
@@ -1335,4 +1401,4 @@
         });
     </script>
 </body>
-</html>                        
+</html>
