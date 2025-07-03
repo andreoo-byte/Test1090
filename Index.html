@@ -1343,73 +1343,7 @@
             }
         }
 
-// Open All Ads function (Chrome-compatible)
-function openAllAds() {
-    if (!confirm("This will try to open 61 tabs. Chrome may block some. Allow pop-ups for this site and try again if blocked.")) return;
 
-    // First test if pop-ups are allowed
-    const testTab = window.open('', '_blank');
-    if (!testTab) {
-        alert("Pop-ups are blocked. Please allow pop-ups for this site and try again.");
-        return;
-    }
-    testTab.close();
-
-    let openedCount = 0;
-    const adElements = [];
-    
-    // Collect all ad elements first
-    for (let i = 1; i <= TOTAL_ADS; i++) {
-        const adElement = document.getElementById(`ad${i}`);
-        if (adElement) {
-            adElements.push(adElement);
-        }
-    }
-
-    // Function to process ads one by one with delay
-    const processAd = (index) => {
-        if (index >= adElements.length) {
-            setTimeout(() => {
-                alert(`Attempted to open ${TOTAL_ADS} ads. Successfully opened ${openedCount} tabs.` + 
-                      (openedCount < TOTAL_ADS ? "\n\nSome tabs may have been blocked by Chrome's pop-up blocker." : ""));
-            }, 500);
-            return;
-        }
-
-        const adElement = adElements[index];
-        const adWrapper = adElement.querySelector('.ad-wrapper > div');
-        
-        // Create a temporary link to simulate click
-        const tempLink = document.createElement('a');
-        tempLink.href = '#';
-        tempLink.target = '_blank';
-        tempLink.style.display = 'none';
-        document.body.appendChild(tempLink);
-        
-        // Trigger click on the ad wrapper
-        setTimeout(() => {
-            const clickEvent = new MouseEvent('click', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-            
-            // First try clicking the wrapper
-            adWrapper.dispatchEvent(clickEvent);
-            
-            // Then try clicking the temporary link
-            tempLink.click();
-            
-            openedCount++;
-            document.body.removeChild(tempLink);
-            
-            // Process next ad after delay
-            setTimeout(() => processAd(index + 1), 500);
-        }, 100);
-    };
-
-    processAd(0);
-}
         
         // Event listeners
         document.getElementById('next-btn').addEventListener('click', nextAd);
